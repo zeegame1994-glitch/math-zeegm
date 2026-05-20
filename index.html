@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>นักคำนวณอัจฉริยะ 🚀</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07091a;
+  --surface: #0f1535;
+  --surface2: #161d42;
+  --border: rgba(100,140,255,0.18);
+  --primary: #5c6dff;
+  --primary-glow: rgba(92,109,255,0.35);
+  --secondary: #00e5c4;
+  --accent: #ffd84d;
+  --danger: #ff5c7a;
+  --purple: #b06fff;
+  --green: #3dffa0;
+  --text: #e8eeff;
+  --text-muted: #7a8ab5;
+  --card-bg: rgba(15,21,53,0.95);
+  --radius: 18px;
+  --font: 'Kanit', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); }
+
+/* STARS */
+.stars { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+.star { position: absolute; background: white; border-radius: 50%; animation: twinkle var(--d, 3s) var(--delay, 0s) infinite alternate; opacity: var(--op, 0.6); }
+@keyframes twinkle { 0%{opacity:0.1;transform:scale(0.7);} 100%{opacity:var(--op,0.8);transform:scale(1.2);} }
+
+/* PLANETS */
+.planet { position: fixed; border-radius: 50%; z-index: 0; animation: float var(--fd,20s) ease-in-out infinite alternate; }
+.p1 { width:160px;height:160px;background:radial-gradient(circle at 35% 35%,#5c6dff,#2a1f8f);top:-40px;right:-40px;opacity:0.25;--fd:22s; }
+.p2 { width:220px;height:220px;background:radial-gradient(circle at 35% 35%,#00e5c4,#005f52);bottom:-80px;left:-80px;opacity:0.2;--fd:28s; }
+.p3 { width:90px;height:90px;background:radial-gradient(circle at 35% 35%,#ffd84d,#b08000);top:45%;right:8%;opacity:0.2;--fd:18s; }
+@keyframes float { 0%{transform:translateY(0);} 100%{transform:translateY(-25px);} }
+
+/* SCREENS */
+.screen { display:none; position:fixed; inset:0; z-index:10; overflow-y:auto; padding:10px 15px 30px; flex-direction:column; align-items:center; }
+.screen.active { display:flex; animation:fadeIn .3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);} }
+
+/* CARD */
+.card { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); padding:20px; width:100%; max-width:440px; box-shadow:0 8px 40px rgba(0,0,0,.5); backdrop-filter:blur(12px); }
+
+/* INPUTS */
+input, select {
+  width:100%; padding:12px 15px; margin:6px 0; border:2px solid var(--border); border-radius:12px;
+  background:rgba(255,255,255,.06); color:var(--text); font-size:1rem; font-family:var(--font);
+  outline:none; text-align:center; transition:border .2s;
+}
+input:focus, select:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
+input::placeholder, select option { color:var(--text-muted); }
+select option { background:var(--surface); }
+
+/* BUTTONS */
+button {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; padding:13px 20px; border:none; border-radius:13px; cursor:pointer;
+  font-size:1.05rem; font-weight:700; font-family:var(--font); color:#fff;
+  background:var(--primary); box-shadow:0 4px 20px var(--primary-glow);
+  transition:transform .1s, box-shadow .1s; margin-top:8px;
+}
+button:active { transform:translateY(3px); box-shadow:none; }
+button:disabled { opacity:0.6; cursor:not-allowed; }
+button.btn-red { background:var(--danger); box-shadow:0 4px 20px rgba(255,92,122,.3); }
+button.btn-accent { background:var(--accent); color:#1a1000; box-shadow:0 4px 20px rgba(255,216,77,.3); }
+button.btn-purple { background:var(--purple); box-shadow:0 4px 20px rgba(176,111,255,.3); }
+button.btn-green { background:var(--green); color:#001a0d; box-shadow:0 4px 20px rgba(61,255,160,.3); }
+button.btn-muted { background:rgba(255,255,255,.1); color:var(--text-muted); box-shadow:none; }
+button.btn-sm { padding:8px 14px; font-size:.85rem; border-radius:8px; margin:2px; width:auto; }
+
+/* AVATAR SELECTION */
+.avatar-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:6px; }
+.ava-card {
+  background:rgba(255,255,255,.05); border:2px solid var(--border); border-radius:14px;
+  padding:14px 8px; cursor:pointer; transition:.2s; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.ava-card.sel { border-color:var(--secondary); background:rgba(0,229,196,.12); box-shadow:0 0 20px rgba(0,229,196,.25); }
+.ava-card span { font-size:.68rem; color:var(--text-muted); font-weight:600; margin-top:5px; }
+.ava-card.sel span { color:var(--secondary); }
+
+/* HUD & Other styles */
+.hud { position:fixed; top:0; left:0; right:0; z-index:200; background:rgba(7,9,26,.92); border-bottom:1px solid var(--border); padding:8px 14px; backdrop-filter:blur(10px); }
+.hud-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.hud-avatar { width:40px; height:40px; border-radius:50%; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.hud-name { font-weight:700; font-size:.95rem; color:var(--accent); line-height:1; }
+.hud-lv { font-size:.75rem; color:var(--text-muted); }
+.hud-score { text-align:center; }
+.hud-score .val { font-size:1.2rem; font-weight:800; color:var(--accent); }
+.hud-score .lbl { font-size:.7rem; color:var(--text-muted); }
+.exp-wrap { flex:1; max-width:120px; }
+.exp-bar { background:rgba(255,255,255,.1); border-radius:20px; height:7px; overflow:hidden; margin-top:3px; }
+.exp-fill { height:100%; background:linear-gradient(90deg,var(--purple),var(--primary)); border-radius:20px; transition:width .5s ease; }
+
+.stats-row { display:flex; gap:10px; width:100%; max-width:440px; margin:8px 0; }
+.stat-box { flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:10px 8px; text-align:center; }
+.stat-box .lbl { font-size:.72rem; color:var(--text-muted); }
+.stat-box .val { font-size:1.3rem; font-weight:800; color:var(--accent); margin-top:2px; }
+
+.problem-box { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); padding:20px; width:100%; max-width:440px; }
+.diff-badge { display:inline-flex; align-items:center; gap:5px; background:rgba(92,109,255,.2); border:1px solid var(--primary); border-radius:20px; padding:3px 12px; font-size:.8rem; color:var(--primary); font-weight:700; margin-bottom:10px; }
+.problem-text { font-size:2.4rem; font-weight:900; text-align:center; color:#fff; margin:18px 0; letter-spacing:2px; text-shadow:0 0 30px rgba(92,109,255,.4); }
+
+.match-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.match-btn { background:rgba(255,255,255,.06); border:2px solid var(--border); border-radius:13px; padding:15px 8px; font-size:1.15rem; font-weight:700; color:var(--text); cursor:pointer; transition:.18s; text-align:center; min-height:56px; display:flex; align-items:center; justify-content:center; }
+.match-btn.sel { border-color:var(--secondary); background:rgba(0,229,196,.15); transform:scale(1.04); }
+.match-btn.matched { opacity:0; pointer-events:none; transition:.3s; }
+.match-btn.fake { border-color:rgba(255,92,122,.3); }
+
+.feedback { padding:12px 16px; border-radius:12px; text-align:center; font-weight:700; font-size:1rem; margin-top:10px; }
+.feedback.ok { background:rgba(61,255,160,.12); border:1px solid var(--green); color:var(--green); }
+.feedback.bad { background:rgba(255,92,122,.12); border:1px solid var(--danger); color:var(--danger); }
+
+.combo-burst { animation:comboPop .5s ease-out; background:rgba(255,216,77,.12); border:1px solid var(--accent); border-radius:12px; padding:8px 14px; color:var(--accent); font-weight:800; text-align:center; margin-top:8px; }
+@keyframes comboPop { 0%{transform:scale(.5);opacity:0;} 60%{transform:scale(1.15);} 100%{transform:scale(1);opacity:1;} }
+.hearts { font-size:1.3rem; letter-spacing:3px; text-align:center; margin:5px 0; }
+.g2-input-wrap { display:flex; gap:8px; margin-top:12px; }
+.g2-input-wrap input { flex:1; font-size:1.4rem; padding:14px; }
+.bonus-banner { position:fixed; top:65px; left:0; right:0; z-index:199; background:linear-gradient(90deg,var(--danger),#ff8c00); text-align:center; padding:6px; font-weight:800; font-size:.9rem; display:none; animation:flashBg 1s infinite; }
+@keyframes flashBg { 0%,100%{background:linear-gradient(90deg,var(--danger),#ff8c00);} 50%{background:linear-gradient(90deg,#ff8c00,var(--purple));} }
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); z-index:500; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:var(--surface); border:1px solid var(--border); border-radius:22px; padding:25px; width:100%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+.summary-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:1rem; }
+.summary-row .key { color:var(--text-muted); }
+.summary-row .val { font-weight:700; }
+.admin-table-wrap { width:100%; overflow-x:auto; background:var(--surface); border-radius:14px; border:1px solid var(--border); }
+table { width:100%; border-collapse:collapse; min-width:560px; }
+th { background:rgba(92,109,255,.25); color:var(--primary); padding:10px 8px; font-size:.85rem; border-bottom:1px solid var(--border); }
+td { padding:10px 8px; font-size:.85rem; border-bottom:1px solid rgba(255,255,255,.05); text-align:center; }
+.particle { position:fixed; pointer-events:none; z-index:9999; font-size:1.5rem; animation:particleOut .9s cubic-bezier(.1,.8,.3,1) forwards; }
+@keyframes particleOut { 0%{transform:translate(-50%,-50%) scale(.5);opacity:1;} 100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1.5) rotate(200deg);opacity:0;} }
+.timer-chip { background:rgba(255,255,255,.07); border:1px solid var(--border); border-radius:20px; padding:4px 12px; font-size:.9rem; font-weight:700; color:var(--secondary); font-family:monospace; }
+.menu-stage-btn { position:relative; }
+.stage-lv-chip { position:absolute; top:-8px; right:-8px; background:var(--accent); color:#1a1000; border-radius:20px; padding:2px 8px; font-size:.75rem; font-weight:800; }
+.lvup-modal { display:none; position:fixed; inset:0; z-index:600; align-items:center; justify-content:center; background:rgba(0,0,0,.85); }
+.lvup-modal.open { display:flex; animation:fadeIn .2s ease; }
+.lvup-box { text-align:center; padding:30px; }
+.lvup-emoji { font-size:5rem; animation:lvupBounce 1s ease; }
+.lvup-title { font-size:2.5rem; font-weight:900; background:linear-gradient(135deg,var(--accent),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+@keyframes lvupBounce { 0%,100%{transform:scale(1);} 50%{transform:scale(1.3) rotate(10deg);} }
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+.pt80 { padding-top:80px; }
+.w100 { width:100%; max-width:440px; }
+.text-center { text-align:center; }
+.mt10 { margin-top:10px; }
+.section-title { font-size:1.5rem; font-weight:900; color:var(--accent); text-align:center; margin:10px 0; }
+
+/* Loading Overlay */
+#loadingOverlay { display:none; position:fixed; inset:0; background:rgba(7,9,26,0.9); z-index:9999; flex-direction:column; align-items:center; justify-content:center; }
+.spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--secondary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes wrongShake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <div style="color:var(--secondary); font-weight:bold;">กำลังเชื่อมต่อฐานข้อมูลบน Cloud...</div>
+</div>
+
+<div class="stars" id="stars"></div>
+<div class="planet p1"></div><div class="planet p2"></div><div class="planet p3"></div>
+
+<div class="hud" id="hud" style="display:none">
+  <div class="hud-row">
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <div class="hud-avatar" id="hudAvaWrap"></div>
+      <div><div class="hud-name" id="hudName">ผู้เล่น</div><div class="hud-lv">Lv.<span id="hudLv">1</span></div></div>
+    </div>
+    <div class="hud-score"><div class="val" id="hudScore">0</div><div class="lbl">⭐ คะแนน</div></div>
+    <div class="exp-wrap">
+      <div class="exp-text">EXP <span id="hudExp">0</span></div>
+      <div class="exp-bar"><div class="exp-fill" id="hudExpFill" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="bonus-banner" id="bonusBanner">🔥 โบนัส x2! (<span id="bonusTime">30</span>วิ)</div>
+
+<div class="screen active" id="loginScreen" style="justify-content:space-between;padding:0;overflow:hidden">
+  <div style="text-align:center;padding:12px 15px 6px;flex-shrink:0">
+    <div style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,var(--secondary),var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px">🚀 นักคำนวณอัจฉริยะ</div>
+    <div style="color:var(--text-muted);font-size:.8rem;margin-top:2px">สำรองข้อมูลอัตโนมัติ (Cloud Save)</div>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:0 15px;width:100%">
+    <div class="card" style="padding:14px;max-width:440px;margin:0 auto">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px">
+        <input type="text" id="loginName" placeholder="👤 ชื่อนักเรียน" maxlength="20" style="margin:0;padding:10px;font-size:.9rem">
+        <input type="number" id="loginNo" placeholder="🔢 เลขที่" min="1" max="50" style="margin:0;padding:10px;font-size:.9rem">
+      </div>
+      <select id="loginClass" style="margin:0 0 6px;padding:10px;font-size:.9rem">
+        <option value="" disabled selected>🏫 เลือกชั้นเรียน</option>
+        <option value="ป.1">ป.1</option><option value="ป.2">ป.2</option><option value="ป.3">ป.3</option>
+        <option value="ป.4">ป.4</option><option value="ป.5">ป.5</option><option value="ป.6">ป.6</option>
+      </select>
+
+      <div style="font-size:.78rem;font-weight:700;color:var(--text-muted);margin:4px 0 4px">🎭 เลือกตัวละคร</div>
+      <div id="avaGrid" class="avatar-grid"></div>
+
+      <input type="password" id="loginPass" placeholder="🔑 รหัสผ่าน" style="margin:0 0 6px;padding:10px;font-size:.9rem">
+      <button id="loginBtn" onclick="doLogin()" style="padding:11px;font-size:1rem;margin:0">🚀 เข้าสู่ภารกิจ</button>
+      <p style="font-size:.72rem;color:var(--text-muted);text-align:center;margin-top:6px;margin-bottom:0">* หากเคยเล่นแล้ว ระบบจะดึงข้อมูลจาก Cloud มาให้</p>
+    </div>
+  </div>
+
+  <div style="flex-shrink:0;text-align:center;padding:8px 15px 14px">
+    <span onclick="toggleAdminLogin()" style="color:var(--text-muted);font-size:.75rem;cursor:pointer;opacity:.6;text-decoration:underline">🔐 Admin</span>
+    <div id="adminLoginCard" style="display:none;margin-top:8px;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:12px;max-width:300px;margin-left:auto;margin-right:auto">
+      <div style="font-size:.85rem;font-weight:700;color:var(--purple);margin-bottom:8px">🛡️ Admin Login</div>
+      <input type="text" id="aUser" placeholder="ชื่อ Admin" style="padding:8px;font-size:.85rem;margin:0 0 5px">
+      <input type="password" id="aPass" placeholder="รหัสผ่าน" style="padding:8px;font-size:.85rem;margin:0 0 6px">
+      <div style="display:flex;gap:6px">
+        <button class="btn-purple" onclick="doAdminLogin()" style="padding:8px;font-size:.85rem;margin:0">เข้าระบบ</button>
+        <button class="btn-muted" onclick="toggleAdminLogin()" style="padding:8px;font-size:.85rem;margin:0">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="adminScreen" style="padding-top:20px;align-items:center">
+  <div class="section-title">🛡️ Admin Panel (ข้อมูลจาก Cloud)</div>
+  <div style="width:100%;max-width:700px">
+    <div class="admin-table-wrap">
+      <table>
+        <thead>
+          <tr><th>ชื่อ</th><th>ชั้น</th><th>เลขที่</th><th>Lv.</th><th>EXP</th><th>เวลาเฉลี่ย/ด่าน</th><th>รหัสผ่าน</th></tr>
+        </thead>
+        <tbody id="adminTbody"></tbody>
+      </table>
+    </div>
+    <button class="btn-muted mt10" onclick="doLogout()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<div class="screen pt80" id="menuScreen" style="justify-content:flex-start;align-items:center">
+  <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:440px">
+    <div class="card text-center" style="margin-top:10px">
+      <div id="menuAvaWrap" style="display:flex;justify-content:center;margin-bottom:5px"></div>
+      <div style="font-size:1.3rem;font-weight:800;color:var(--accent);margin-top:5px" id="menuName">ชื่อ</div>
+      <div style="color:var(--text-muted);font-size:.85rem" id="menuClass">ป.1</div>
+      <div style="font-size:2rem;font-weight:900;color:var(--primary);margin:5px 0">Level <span id="menuLv">1</span></div>
+      <div class="exp-bar" style="height:10px"><div class="exp-fill" id="menuExpFill" style="width:0%"></div></div>
+      <div style="font-size:.8rem;color:var(--purple);margin-top:4px">EXP: <span id="menuExpVal">0</span> / <span id="menuExpReq">500</span></div>
+    </div>
+    <div style="font-size:1rem;font-weight:700;color:var(--text-muted);text-align:center;margin:10px 0">เลือกภารกิจ</div>
+    <div style="width:100%;display:flex;flex-direction:column;gap:10px">
+      <div class="menu-stage-btn">
+        <button onclick="initStage(1)" style="background:linear-gradient(135deg,var(--secondary),#0099885)">🎯 ด่าน 1: จับคู่ตัวเลข</button>
+        <div class="stage-lv-chip">Lv.<span id="menuG1Lv">1</span></div>
+      </div>
+      <div class="menu-stage-btn">
+        <button onclick="initStage(2)" class="btn-red">⚡ ด่าน 2: คำนวณยอดเยี่ยม</button>
+        <div class="stage-lv-chip" style="background:var(--danger);color:white">Lv.<span id="menuG2Lv">1</span></div>
+      </div>
+    </div>
+    <button class="btn-muted mt10" onclick="doLogout()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<div class="screen pt80" id="g1Screen" style="align-items:center">
+  <div class="stats-row w100">
+    <div class="stat-box"><div class="lbl">ด่าน 1</div><div class="val">Lv.<span id="g1Lv">1</span></div></div>
+    <div class="stat-box"><div class="lbl">⏱ เวลา</div><div class="val" id="g1Timer" style="font-size:1rem;font-family:monospace">00:00</div></div>
+    <div class="stat-box"><div class="lbl">ข้อที่</div><div class="val"><span id="g1Q">1</span>/10</div></div>
+  </div>
+  <div class="problem-box w100">
+    <div class="match-title" id="g1Instruction">จับคู่ตัวเลขบวกกันได้ 10</div>
+    <div class="match-grid" id="g1Grid"></div>
+    <div id="g1Feedback"></div>
+  </div>
+  <button class="btn-muted mt10 w100" onclick="quitStage()">ยอมแพ้ / กลับเมนู</button>
+</div>
+
+<div class="screen pt80" id="g2Screen" style="align-items:center">
+  <div class="stats-row w100">
+    <div class="stat-box"><div class="lbl">ด่าน 2</div><div class="val">Lv.<span id="g2Lv">1</span></div></div>
+    <div class="stat-box"><div class="lbl">⏱ เวลา</div><div class="val" id="g2Timer" style="font-size:1rem;font-family:monospace">00:00</div></div>
+    <div class="stat-box"><div class="lbl">ข้อที่</div><div class="val"><span id="g1Q">1</span>/10</div></div>
+  </div>
+  <div class="problem-box w100">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="diff-badge" id="g2DiffBadge">⭐ ง่าย</div>
+      <div class="hearts" id="g2Hearts">❤️❤️❤️</div>
+    </div>
+    <div style="color:var(--text-muted);font-size:.9rem;font-weight:700;margin-bottom:5px" id="g2Title">คำนวณผลลัพธ์</div>
+    <div class="problem-text" id="g2Problem">123 + 456</div>
+    <div class="combo-display" id="g2Combo" style="display:none"></div>
+    <div class="g2-input-wrap">
+      <input type="number" id="g2Ans" placeholder="คำตอบ..." onkeypress="if(event.key==='Enter')checkG2()">
+      <button class="btn-accent" style="width:56px;flex-shrink:0" onclick="g2ClearInput()">C</button>
+    </div>
+    <button onclick="checkG2()" style="margin-top:10px">✅ ส่งคำตอบ</button>
+    <div id="g2Feedback" style="margin-top:8px"></div>
+  </div>
+  <button class="btn-muted mt10 w100" onclick="quitStage()">ยอมแพ้ / กลับเมนู</button>
+</div>
+
+<div class="modal-overlay" id="summaryModal">
+  <div class="modal-box">
+    <div class="text-center" style="font-size:2.5rem;margin-bottom:5px">🎉</div>
+    <div class="text-center" style="font-size:1.4rem;font-weight:800;color:var(--accent);margin-bottom:15px">สรุปผลด่าน!</div>
+    <div class="summary-row"><span class="key">⏱ เวลาที่ใช้</span><span class="val" style="color:var(--purple)" id="sumTime">-</span></div>
+    <div class="summary-row"><span class="key">📊 คะแนนพื้นฐาน</span><span class="val" id="sumBase">0</span></div>
+    <div class="summary-row"><span class="key">🎯 โบนัสความแม่นยำ</span><span class="val" style="color:var(--green)" id="sumAcc">+0</span></div>
+    <div class="summary-row"><span class="key">⚡ โบนัสทำเวลา</span><span class="val" style="color:var(--secondary)" id="sumSpeed">+0</span></div>
+    <div class="summary-row"><span class="key" style="font-weight:800;font-size:1.1rem">✨ EXP รวม</span><span class="val" style="color:var(--purple);font-size:1.3rem" id="sumTotal">0</span></div>
+    <div id="sumLvUp" style="display:none;text-align:center;color:var(--accent);font-weight:800;margin-top:8px;font-size:1.1rem">🌟 เลเวลอัปแล้ว!</div>
+    <button class="btn-purple" style="margin-top:15px" onclick="finishSummary()">รับ EXP และบันทึก 🚀</button>
+  </div>
+</div>
+
+<div class="lvup-modal" id="lvupModal">
+  <div class="lvup-box">
+    <div class="lvup-emoji">⭐</div>
+    <div class="lvup-title">LEVEL UP!</div>
+    <div style="color:var(--text-muted);margin-top:8px">คุณขึ้นเป็น Level <span id="lvupNum" style="color:var(--accent);font-weight:800">2</span>!</div>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// 🔴 ใส่ URL ของ Web App จาก Google Apps Script ตรงนี้ 🔴
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwrl3sHa6nciGH5FlN5oYE3qsY_3jHv8W2vsX5IGrbN8frYkZPr1IAXRqIgxXz5QG9f/exec"; 
+// ==========================================
+
+(function(){
+  const s = document.getElementById('stars');
+  for(let i=0;i<80;i++){
+    const d=document.createElement('div'); d.className='star'; const sz=Math.random()*2.5+0.5;
+    d.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*5}s;--op:${.3+Math.random()*.7}`;
+    s.appendChild(d);
+  }
+})();
+
+const AVATARS = {
+  boy:      { name: 'นักเรียนชาย',   emoji: '👦', bg: '#1a3a7a', color: '#4a90d9' },
+  girl:     { name: 'นักเรียนหญิง',  emoji: '👧', bg: '#8b1a5a', color: '#e040a0' },
+  boy2:     { name: 'นักบินชาย',     emoji: '👨‍✈️', bg: '#1a4a1a', color: '#2ecc71' },
+  girl2:    { name: 'นักบินหญิง',    emoji: '👩‍✈️', bg: '#4a1a1a', color: '#e74c3c' },
+  astro:    { name: 'นักบินอวกาศ',   emoji: '🧑‍🚀', bg: '#2a0a4a', color: '#9b59b6' },
+  scientist:{ name: 'นักวิทยาศาสตร์',emoji: '🧑‍🔬', bg: '#0a3a4a', color: '#00bcd4' }
+};
+
+function avaHTML(key, size=64){
+  const av = AVATARS[key] || AVATARS.boy;
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${av.bg};display:flex;align-items:center;justify-content:center;font-size:${size*.55}px;border:3px solid ${av.color};box-shadow:0 0 18px ${av.color}55;flex-shrink:0">${av.emoji}</div>`;
+}
+
+let pd = null, playerKey = '', currStage=0;
+let stageQ=1, stageScore=0, stageMistakes=0, stageTimeSec=0, stageTimerInt=null;
+let bonusActive=false, bonusEndInt=null, correctTimes=[];
+let selectedAva='boy';
+
+(function(){
+  const g=document.getElementById('avaGrid');
+  Object.entries(AVATARS).forEach(([key,av],i)=>{
+    const d=document.createElement('div'); d.className='ava-card'+(i===0?' sel':'');
+    d.innerHTML=`<div style="font-size:1.9rem;line-height:1.2">${av.emoji}</div><span>${av.name}</span>`;
+    d.onclick=()=>{ document.querySelectorAll('.ava-card').forEach(c=>c.classList.remove('sel')); d.classList.add('sel');selectedAva=key; };
+    g.appendChild(d);
+  });
+})();
+
+// ===== CLOUD FETCH FUNCTIONS =====
+function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
+
+async function fetchAllFromCloud() {
+  if(!GAS_URL || GAS_URL === "ใส่_URL_WEB_APP_ที่นี่") return JSON.parse(localStorage.getItem('mathRpgV2')||'{}');
+  try {
+    let res = await fetch(GAS_URL + "?action=loadAll");
+    return await res.json();
+  } catch(e) {
+    console.warn("ดึงข้อมูลจากคลาวด์ไม่ได้ ดึงจากเครื่องแทน", e);
+    return JSON.parse(localStorage.getItem('mathRpgV2')||'{}');
+  }
+}
+
+function saveToCloud(key, dataObj) {
+  let all = JSON.parse(localStorage.getItem('mathRpgV2')||'{}');
+  all[key] = dataObj;
+  localStorage.setItem('mathRpgV2', JSON.stringify(all)); // Backup in machine
+  
+  if(!GAS_URL || GAS_URL === "ใส่_URL_WEB_APP_ที่นี่") return;
+  fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'save', key: key, data: dataObj }),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' } // text/plain to avoid CORS preflight error in GAS
+  }).catch(e => console.log("สำรองข้อมูลขึ้นคลาวด์ล้มเหลว", e));
+}
+
+// ===== LOGIN LOGIC =====
+async function doLogin(){
+  const name=document.getElementById('loginName').value.trim();
+  const cls=document.getElementById('loginClass').value;
+  const no=document.getElementById('loginNo').value.trim();
+  const pass=document.getElementById('loginPass').value;
+
+  if(!name||!cls||!no||!pass){ alert('กรุณากรอกข้อมูลให้ครบถ้วน'); return; }
+
+  showLoading(true);
+  const all = await fetchAllFromCloud();
+  showLoading(false);
+
+  playerKey=`p_${name}_${cls}_${no}`;
+
+  if(all[playerKey]){
+    if(all[playerKey].password===pass){
+      pd=all[playerKey];
+      pd.totalTime=pd.totalTime||0; pd.stagesCompleted=pd.stagesCompleted||0;
+      showScreen('menuScreen');updateHUD();
+    } else { alert('รหัสผ่านไม่ถูกต้อง! หากลืมให้ติดต่อแอดมิน'); }
+  } else {
+    pd={ name,class:cls,no,password:pass,avatar:selectedAva, exp:0,charLv:1,g1Lv:1,g2Lv:1,totalTime:0,stagesCompleted:0,score:0 };
+    saveToCloud(playerKey, pd);
+    showScreen('menuScreen');updateHUD();
+  }
+}
+
+function toggleAdminLogin() { document.getElementById('adminLoginCard').style.display = document.getElementById('adminLoginCard').style.display === 'none' ? 'block' : 'none'; }
+
+async function doAdminLogin(){
+  const u=document.getElementById('aUser').value.trim();
+  const p=document.getElementById('aPass').value;
+  if(u==='zeegm_1'&&p==='123456789'){ 
+    showLoading(true);
+    const all = await fetchAllFromCloud();
+    showLoading(false);
+    showAdminScreen(all); 
+  }
+  else { alert('ชื่อหรือรหัสผ่านไม่ถูกต้อง'); }
+}
+
+function showAdminScreen(allData){
+  showScreen('adminScreen');
+  const tbody=document.getElementById('adminTbody');
+  tbody.innerHTML='';
+  const players=Object.entries(allData);
+  if(!players.length){ tbody.innerHTML='<tr><td colspan="7" style="color:var(--text-muted)">ยังไม่มีข้อมูล</td></tr>'; return; }
+  players.forEach(([key,p])=>{
+    const avgSec=p.stagesCompleted>0?Math.floor((p.totalTime||0)/p.stagesCompleted):0;
+    const m=String(Math.floor(avgSec/60)).padStart(2,'0'),s=String(avgSec%60).padStart(2,'0');
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="font-weight:700">${p.name}</td><td>${p.class}</td><td>${p.no}</td>
+      <td style="color:var(--accent);font-weight:800">${p.charLv}</td><td style="color:var(--purple)">${p.exp}</td>
+      <td style="color:var(--secondary);font-weight:700">${m}:${s} นาที</td><td style="color:var(--danger)">${p.password}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function doLogout(){ showScreen('loginScreen'); pd=null; playerKey=''; document.getElementById('hud').style.display='none'; document.getElementById('bonusBanner').style.display='none'; }
+
+// ===== RPG SYSTEM =====
+function expReq(lv){ return lv*lv*500; }
+function tryLevelUp(){ let leveled=false; while(pd.exp >= expReq(pd.charLv)){ pd.exp-=expReq(pd.charLv); pd.charLv++; leveled=true; } return leveled; }
+
+function updateHUD(){
+  if(!pd)return;
+  document.getElementById('hud').style.display='block';
+  document.getElementById('hudName').textContent=pd.name;
+  document.getElementById('hudLv').textContent=pd.charLv;
+  document.getElementById('hudScore').textContent=pd.score||0;
+  document.getElementById('hudExp').textContent=pd.exp;
+  document.getElementById('hudAvaWrap').innerHTML=avaHTML(pd.avatar,36);
+  document.getElementById('menuAvaWrap').innerHTML=avaHTML(pd.avatar,100);
+  document.getElementById('menuName').textContent=pd.name;
+  document.getElementById('menuClass').textContent=pd.class+' เลขที่ '+pd.no;
+  document.getElementById('menuLv').textContent=pd.charLv;
+  document.getElementById('menuG1Lv').textContent=pd.g1Lv;
+  document.getElementById('menuG2Lv').textContent=pd.g2Lv;
+  const req=expReq(pd.charLv);
+  const pct=Math.min(100,(pd.exp/req)*100);
+  document.getElementById('hudExpFill').style.width=pct+'%';
+  document.getElementById('menuExpFill').style.width=pct+'%';
+  document.getElementById('menuExpVal').textContent=pd.exp;
+  document.getElementById('menuExpReq').textContent=req;
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='loginScreen'||id==='adminScreen') document.getElementById('hud').style.display='none';
+  else if(pd) document.getElementById('hud').style.display='block';
+}
+
+const AC=new (window.AudioContext||window.webkitAudioContext)();
+function beep(type){
+  if(AC.state==='suspended') AC.resume();
+  const o=AC.createOscillator(),g=AC.
